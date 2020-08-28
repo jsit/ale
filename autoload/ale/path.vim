@@ -24,6 +24,14 @@ function! ale#path#Simplify(path) abort
     return substitute(simplify(l:win_path), '^\\\+', '\', 'g') " no-custom-checks
 endfunction
 
+" Simplify a path without a Windows drive letter.
+" This function can be used for checking if paths are equal.
+function! ale#path#RemoveDriveLetter(path) abort
+    return has('win32') && a:path[1:2] is# ':\'
+    \   ? ale#path#Simplify(a:path[2:])
+    \   : ale#path#Simplify(a:path)
+endfunction
+
 " Given a buffer and a filename, find the nearest file by searching upwards
 " through the paths relative to the given buffer.
 function! ale#path#FindNearestFile(buffer, filename) abort
@@ -95,7 +103,7 @@ function! ale#path#IsAbsolute(filename) abort
     return a:filename[:0] is# '/' || a:filename[1:2] is# ':\'
 endfunction
 
-let s:temp_dir = ale#path#Simplify(fnamemodify(ale#util#Tempname(), ':h'))
+let s:temp_dir = ale#path#Simplify(fnamemodify(ale#util#Tempname(), ':h:h'))
 
 " Given a filename, return 1 if the file represents some temporary file
 " created by Vim.

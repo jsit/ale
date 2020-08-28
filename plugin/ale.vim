@@ -97,6 +97,10 @@ let g:ale_fix_on_save = get(g:, 'ale_fix_on_save', 0)
 " should be used instead.
 let g:ale_enabled = get(g:, 'ale_enabled', 1)
 
+" A Dictionary mapping linter or fixer names to Arrays of two-item Arrays
+" mapping filename paths from one system to another.
+let g:ale_filename_mappings = get(g:, 'ale_filename_mappings', {})
+
 " These flags dictates if ale uses the quickfix or the loclist (loclist is the
 " default, quickfix overrides loclist).
 let g:ale_set_loclist = get(g:, 'ale_set_loclist', 1)
@@ -109,6 +113,9 @@ let g:ale_set_signs = get(g:, 'ale_set_signs', has('signs'))
 " This flag can be set to 0 to disable setting error highlights.
 let g:ale_set_highlights = get(g:, 'ale_set_highlights', has('syntax'))
 
+" This List can be configured to exclude particular highlights.
+let g:ale_exclude_highlights = get(g:, 'ale_exclude_highlights', [])
+
 " This flag can be set to 0 to disable echoing when the cursor moves.
 let g:ale_echo_cursor = get(g:, 'ale_echo_cursor', 1)
 
@@ -117,6 +124,9 @@ let g:ale_cursor_detail = get(g:, 'ale_cursor_detail', 0)
 
 " This flag can be set to 1 to enable virtual text when the cursor moves.
 let g:ale_virtualtext_cursor = get(g:, 'ale_virtualtext_cursor', 0)
+
+" This flag can be set to 1 to enable LSP hover messages at the cursor.
+let g:ale_hover_cursor = get(g:, 'ale_hover_cursor', 1)
 
 " This flag can be set to 1 to automatically close the preview window upon
 " entering Insert Mode.
@@ -205,16 +215,13 @@ command! -bar -nargs=* -complete=customlist,ale#fix#registry#CompleteFixers ALEF
 command! -bar ALEFixSuggest :call ale#fix#registry#Suggest(&filetype)
 
 " Go to definition for tsserver and LSP
-command! -bar ALEGoToDefinition :call ale#definition#GoTo({})
-command! -bar ALEGoToDefinitionInTab :call ale#definition#GoTo({'open_in': 'tab'})
-command! -bar ALEGoToDefinitionInSplit :call ale#definition#GoTo({'open_in': 'horizontal-split'})
-command! -bar ALEGoToDefinitionInVSplit :call ale#definition#GoTo({'open_in': 'vertical-split'})
+command! -bar -nargs=* ALEGoToDefinition :call ale#definition#GoToCommandHandler('', <f-args>)
 
 " Go to type definition for tsserver and LSP
-command! -bar ALEGoToTypeDefinition :call ale#definition#GoToType({})
-command! -bar ALEGoToTypeDefinitionInTab :call ale#definition#GoToType({'open_in': 'tab'})
-command! -bar ALEGoToTypeDefinitionInSplit :call ale#definition#GoToType({'open_in': 'horizontal-split'})
-command! -bar ALEGoToTypeDefinitionInVSplit :call ale#definition#GoToType({'open_in': 'vertical-split'})
+command! -bar -nargs=* ALEGoToTypeDefinition :call ale#definition#GoToCommandHandler('type', <f-args>)
+
+" Repeat a previous selection in the preview window
+command! -bar ALERepeatSelection :call ale#preview#RepeatSelection()
 
 " Find references for tsserver and LSP
 command! -bar -nargs=* ALEFindReferences :call ale#references#Find(<f-args>)
@@ -263,18 +270,19 @@ nnoremap <silent> <Plug>(ale_lint) :ALELint<Return>
 nnoremap <silent> <Plug>(ale_detail) :ALEDetail<Return>
 nnoremap <silent> <Plug>(ale_fix) :ALEFix<Return>
 nnoremap <silent> <Plug>(ale_go_to_definition) :ALEGoToDefinition<Return>
-nnoremap <silent> <Plug>(ale_go_to_definition_in_tab) :ALEGoToDefinitionInTab<Return>
-nnoremap <silent> <Plug>(ale_go_to_definition_in_split) :ALEGoToDefinitionInSplit<Return>
-nnoremap <silent> <Plug>(ale_go_to_definition_in_vsplit) :ALEGoToDefinitionInVSplit<Return>
+nnoremap <silent> <Plug>(ale_go_to_definition_in_tab) :ALEGoToDefinition -tab<Return>
+nnoremap <silent> <Plug>(ale_go_to_definition_in_split) :ALEGoToDefinition -split<Return>
+nnoremap <silent> <Plug>(ale_go_to_definition_in_vsplit) :ALEGoToDefinition -vsplit<Return>
 nnoremap <silent> <Plug>(ale_go_to_type_definition) :ALEGoToTypeDefinition<Return>
-nnoremap <silent> <Plug>(ale_go_to_type_definition_in_tab) :ALEGoToTypeDefinitionInTab<Return>
-nnoremap <silent> <Plug>(ale_go_to_type_definition_in_split) :ALEGoToTypeDefinitionInSplit<Return>
-nnoremap <silent> <Plug>(ale_go_to_type_definition_in_vsplit) :ALEGoToTypeDefinitionInVSplit<Return>
+nnoremap <silent> <Plug>(ale_go_to_type_definition_in_tab) :ALEGoToTypeDefinition -tab<Return>
+nnoremap <silent> <Plug>(ale_go_to_type_definition_in_split) :ALEGoToTypeDefinition -split<Return>
+nnoremap <silent> <Plug>(ale_go_to_type_definition_in_vsplit) :ALEGoToTypeDefinitionIn -vsplit<Return>
 nnoremap <silent> <Plug>(ale_find_references) :ALEFindReferences<Return>
 nnoremap <silent> <Plug>(ale_hover) :ALEHover<Return>
 nnoremap <silent> <Plug>(ale_documentation) :ALEDocumentation<Return>
 inoremap <silent> <Plug>(ale_complete) <C-\><C-O>:ALEComplete<Return>
 nnoremap <silent> <Plug>(ale_rename) :ALERename<Return>
+nnoremap <silent> <Plug>(ale_repeat_selection) :ALERepeatSelection<Return>
 
 " Set up autocmd groups now.
 call ale#events#Init()
